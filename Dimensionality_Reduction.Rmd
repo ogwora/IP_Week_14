@@ -1,0 +1,164 @@
+---
+title: 'Week 14 IP Part 1: Dimensionality Reduction'
+author: "Lawrence Ondieki"
+date: "20/7/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Problem Definition
+## **a) Specifying the Question**
+
+Reducing our dataset to a low dimensional dataset using the PCA.
+
+## **b) Defining the metrics for success**
+
+We will reduce our dataset to a low dimensional dataset using the PCA. We will perform our analysis and provide insights gained from the analysis.
+
+## **c) Understanding the context**
+
+You are a Data analyst at Carrefour Kenya and are currently undertaking a project that will inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales (total price including tax). Your project has been divided into four parts where you'll explore a recent marketing dataset by performing various unsupervised learning techniques and later providing recommendations based on your insights.
+
+## **d) Relevance of the data**
+
+The data used for this project will inform the marketing department on the most relevant marketing strategies that will result in the highest number of sales (total price including tax).
+
+[http://bit.ly/CarreFourDataset]
+
+# Data Analysis
+## Data Sourcing
+```{r}
+# loading libraries
+library(relaimpo)
+library(data.table)
+library(ggplot2) # Data visualization
+library(ggthemes) # Plot themes
+library(plotly) # Interactive data visualizations
+library(dplyr) # Data manipulation
+library(psych) # Will be used for correlation visualization
+```
+
+```{r}
+# importing our data
+# reading our data
+df <- read.csv('http://bit.ly/CarreFourDataset')
+df
+```
+
+```{r}
+# previewing the dataset
+View(df)
+
+```
+
+```{r}
+# previewing the column names
+colnames(df)
+
+```
+
+```{r}
+# previewing the dataset
+class(df)
+
+```
+
+```{r}
+# previewing the datatypes of the dataset
+sapply(df, class)
+```
+
+```{r}
+# previewing the head of the dataset
+head(df, n = 5)
+
+```
+
+```{r}
+# previewing the tail of the dataset
+tail(df, n = 5)
+
+```
+
+```{r}
+# checking the structure of the data
+str(df)
+
+```
+
+```{r}
+# checking the dimension/shape of the data
+dim(df) # 1000 rows and 16 columns
+```
+## Data Cleaning
+### Missing Values
+```{r}
+# checking for missing values
+sum(is.na(df))
+```
+There are no missing values in the data
+```{r}
+# displaying all rows from the dataset which don't contain any missing values 
+na.omit(df)
+```
+
+### Duplicates
+
+```{r}
+# checking for duplicates
+duplicated_rows <- df[duplicated(df),]
+duplicated_rows # there are no duplicates in the data
+```
+There are no missing values in the data
+```{r}
+# showing these unique items and assigning to a variable unique_items below
+unique_items <- df[!duplicated(df), ]
+unique_items
+```
+
+```{r}
+# selecting the numerical data columns
+df1 <- df %>% select_if(is.numeric)
+colnames(df1)
+```
+
+```{r}
+# selecting needed columns
+df2 <- subset(df1, select = c("Unit.price", "Quantity", "Tax", "cogs", "gross.income", "Rating", "Total"))
+colnames(df2)
+```
+
+```{r}
+describe(df2)
+```
+
+
+# Dimensionality Reduction using PCA
+
+```{r}
+str(df2)
+```
+
+```{r}
+# We then pass df to the prcomp(). We also set two arguments, center and scale,
+# to be TRUE then preview our object with summary
+df3 <- prcomp(df2)
+#df4=prcomp(df4)#,center=T,scale.=T)
+#, center = TRUE, scale. = TRUE)
+summary(df3)
+```
+
+```{r}
+# Calling str() to have a look at your PCA object
+str(df3)
+```
+
+```{r}
+library(ggbiplot)
+ggbiplot(df3)
+```
+```{r}
+# Adding more detail to the plot, we provide arguments rownames as labels
+ggbiplot(df3, labels=rownames(df), obs.scale = 1, var.scale = 1)
+```

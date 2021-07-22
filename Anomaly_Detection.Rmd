@@ -1,0 +1,80 @@
+---
+Week 14 IP Part 4: Anomaly Detection
+author: "Lawrence Ondieki"
+date: "20/7/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Problem Definition
+
+## **a) Specifying the Question**
+
+Identify anomalies in the dataset = fraud detection
+
+## **b) Defining the metrics for success**
+
+To check whether there are any anomalies in the given sales dataset. The
+objective of this task being fraud detection.
+
+## **c) Understanding the context**
+
+You are a Data analyst at Carrefour Kenya and are currently undertaking
+a project that will inform the marketing department on the most relevant
+marketing strategies that will result in the highest no. of sales (total
+price including tax). Your project has been divided into four parts
+where you’ll explore a recent marketing dataset by performing various
+unsupervised learning techniques and later providing recommendations
+based on your insights.
+
+## **d) Relevance of the data**
+
+The data used for this project will inform the marketing department on
+the most relevant marketing strategies that will result in the highest
+no. of sales (total price including tax)
+
+\[<http://bit.ly/CarreFourSalesDataset>\].
+
+# Data Analysis
+
+
+```{r}
+# loading libraries
+library(data.table)
+library(tidyverse)
+```
+
+```{r}
+library(anomalize)
+```
+
+```{r}
+# importing our data
+# reading our data
+df <- fread('http://bit.ly/CarreFourSalesDataset')
+df
+```
+## Anomaly detection
+
+```{r}
+library(data.table)
+library(psych)
+```
+
+```{r}
+library(mvtnorm)
+library(caret)
+```
+
+```{r}
+library(PRROC)
+summary(df)
+```
+
+```{r}
+skew <- sum(as.numeric(df$Class))/nrow(df)
+sprintf('Percentage of fraudulent transactions in the data set %f', skew*100)
+```
+# There were no frauduent transactions in the data
+

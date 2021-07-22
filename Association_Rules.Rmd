@@ -1,0 +1,218 @@
+---
+Week 14 IP Part 3: Association Rules
+author: "Lawrence Ondieki"
+date: "20/7/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Problem Definition
+
+## **a) Specifying the Question**
+
+Create association rules that will allow you to identify relationships between variables in the dataset.
+
+## **b) Defining the metrics for success**
+
+Create association rules that will help identify relationships between variables in the dataset.
+Provide insights for our analysis.
+
+## **c) Understanding the context**
+
+You are a Data analyst at Carrefour Kenya and are currently undertaking
+a project that will inform the marketing department on the most relevant
+marketing strategies that will result in the highest no. of sales (total
+price including tax). Your project has been divided into four parts
+where you’ll explore a recent marketing dataset by performing various
+unsupervised learning techniques and later providing recommendations
+based on your insights.
+
+
+## **e) Relevance of the data**
+
+The data used for this project will inform the marketing department on
+the most relevant marketing strategies that will result in the highest
+no. of sales (total price including tax)
+
+\[<http://bit.ly/SupermarketDatasetII>\].
+
+# Data Analysis
+
+
+
+```{r}
+# loading libraries
+library(relaimpo)
+
+library(data.table)
+library(ggplot2) # Data visualization
+library(ggthemes) # Plot themes
+library(plotly) # Interactive data visualizations
+library(dplyr) # Data manipulation
+library(psych) # Will be used for correlation visualization
+library(arules)# for association
+# importing our data
+# reading our data
+path <-"http://bit.ly/SupermarketDatasetII"
+df<-read.transactions(path, sep = ",")
+```
+
+
+
+```{r}
+df
+```
+
+## Data Checking
+
+```{r}
+# previewing the column names
+colnames(df)
+```
+
+    
+```{r}
+# verifying the class of the data
+class(df)
+```
+```{r}
+# Previewing our first 5 transactions
+inspect(df[1:5])
+```
+
+```{r}
+# Alternatively,
+# preview the items that make up our dataset
+items<-as.data.frame(itemLabels(df))
+colnames(items) <- "Item"
+head(items, 10)    
+```
+
+```{r}
+# Generating a summary of the dataset
+summary(df)
+```
+
+    
+
+```{r}
+# Exploring the frequency of some articles 
+itemFrequency(df[, 8:10],type = "absolute")
+```
+
+   
+```{r}
+round(itemFrequency(df[, 8:10],type = "relative")*100,2)
+```
+```{r}
+# Producing a chart of frequencies and fitering 
+# Displaying top 10 most common items in the transactions dataset 
+# and the items whose relative importance is at least 10%
+par(mfrow = c(1, 2))
+
+# plot the frequency of items
+itemFrequencyPlot(df, topN = 10,col="darkgreen")
+itemFrequencyPlot(df, support = 0.1,col="darkred")
+```
+
+
+```{r}
+# Building a model based on association rules using the apriori function 
+# We use Min Support as 0.001 and confidence as 0.8
+rules <- apriori (df, parameter = list(supp = 0.001, conf = 0.8))
+```
+
+```{r}
+rules
+```
+
+```{r}
+# using the  measures of significance and interest on the rules,determining which ones are interesting and which to discard.
+# Building a apriori model with Min Support as 0.002 and confidence as 0.8.
+rules2 <- apriori (df,parameter = list(supp = 0.002, conf = 0.8)) 
+```
+
+```{r}
+# Building apriori model with Min Support as 0.002 and confidence as 0.6.
+rules3 <- apriori (df, parameter = list(supp = 0.001, conf = 0.6)) 
+```
+
+
+```{r}
+rules2
+```
+
+
+```{r}
+rules3
+```
+
+The first model had 74 rules while the second has 2. these had a confidence level of 0.8 but different minimum supports. the same applies to the third that had 545 rules. from this , we can conclude that a higher support level equals a loss in the rules while a low confidence level equals a g=higher number of rules, though not all of them will be useful.
+
+
+```{r}
+# performing an exploration of our model through the use of the summary function as shown
+summary(rules)
+```
+
+
+The summary gives us the statistical data about the rules. this is inclusive of the support, confidence and also lift
+
+
+```{r}
+# Observing rules built in our model i.e. first 5 model rules
+inspect(rules[1:5])
+```
+
+Interpretation of the rules:
+1. If someone buys frozen smoothie and spinach, they are 89% likely to buy mineral water too
+2. If someone buys bacon and pancakes, they are 81% likely to buy spaghetti too
+3. If someone buys nonfat milk and turkey, they are 82% likely to buy mineral water too
+4. If someone buys ground beef and nonfat milk, they are 86% likely to buy mineral water too
+5. If someone buys frozen mushroom cream sauce and pasta, they are 95% likely to buy escalope too
+
+
+```{r}
+# Ordering these rules by a criteria such as the level of confidence
+# then looking at the first five rules.
+rules<-sort(rules, by="confidence", decreasing=TRUE)
+inspect(rules[1:5])
+```
+
+# Interpretation
+# Four of the given five rules have a confidence of 100 and the fifth rule has a confidence of 95
+
+
+```{r}
+# If we're interested in making a promotion relating to the sale of milk, 
+# we could create a subset of rules concerning these products 
+# ---
+# This would tell us the items that the customers bought before purchasing milk
+# ---
+# 
+milk <- subset(rules, subset = rhs %pin% "milk")
+ 
+# Then order by confidence
+milk<-sort(milk, by="confidence", decreasing=TRUE)
+milk
+```
+
+```{r}
+inspect(milk[1:5])
+```
+
+```{r}
+# What if we wanted to determine items that customers might buy 
+# who have previously bought milk?
+# ---
+# 
+# Subset the rules
+milk <- subset(rules, subset = lhs %pin% "milk")
+
+# Order by confidence
+milk<-sort(milk, by="confidence", decreasing=TRUE)
+
+# inspect top 5
+inspect(milk[15:19])
+```

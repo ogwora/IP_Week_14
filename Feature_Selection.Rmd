@@ -1,0 +1,194 @@
+---
+title: 'Week 14 IP Part 2: Feature Selection'
+author: "Lawrence Ondieki"
+date: "20/7/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Problem Definition
+## **a) Specifying the Question**
+
+Perform feature selection and provide insights on the features that contribute the most information to the dataset.
+
+## **b) Defining the metrics for success**
+
+Perform feature selection through the use of the unsupervised learning methods.
+
+## **c) Understanding the context**
+
+You are a Data analyst at Carrefour Kenya and are currently undertaking a project that will inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales (total price including tax). Your project has been divided into four parts where you'll explore a recent marketing dataset by performing various unsupervised learning techniques and later providing recommendations based on your insights.
+
+## **d) Relevance of the data**
+
+The data used for this project will inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales (total price including tax)
+
+[http://bit.ly/CarreFourDataset].
+
+# Data Analysis
+
+```{r}
+# loading libraries
+library(relaimpo)
+library(data.table)
+library(ggplot2) # Data visualization
+library(ggthemes) # Plot themes
+library(plotly) # Interactive data visualizations
+library(dplyr) # Data manipulation
+library(psych) # Will be used for correlation visualization
+```
+
+```{r}
+# importing our data
+# reading our data
+df <- fread('http://bit.ly/CarreFourDataset')
+df
+```
+
+## Data Checking
+```{r}
+# previewing the dataset
+View(df)
+
+```
+
+```{r}
+# previewing the column names
+colnames(df)
+```
+
+```{r}
+# previewing the dataset
+class(df)
+
+```
+
+```{r}
+# previewing the datatypes of the dataset
+sapply(df, class)
+```
+
+```{r}
+# previewing the head of the dataset
+head(df)
+
+```
+
+```{r}
+# previewing the tail of the dataset
+tail(df)
+
+```
+
+```{r}
+# checking the structure of the data
+str(df)
+
+```
+
+```{r}
+# checking the dimension/shape of the data
+dim(df) # 1000 rows and 16 columns
+```
+## DATA Cleaning
+### Missing Values
+```{r}
+# checking for missing values
+sum(is.na(df))
+```
+There are no missing values in the data.
+```{r}
+# displaying all rows from the dataset which don't contain any missing values 
+na.omit(df)
+```
+
+### Duplicates
+
+```{r}
+# checking for duplicates
+duplicated_rows <- df[duplicated(df),]
+duplicated_rows 
+```
+There are no duplicates in the data
+```{r}
+# showing these unique items and assigning to a variable unique_items below
+unique_items <- df[!duplicated(df), ]
+unique_items
+```
+
+```{r}
+# selecting the numerical data columns
+df1 <- df %>% select_if(is.numeric)
+
+# selecting needed columns
+df2 <- subset(df1, select = c("Unit price", "Quantity", "Tax", "cogs", "gross income", "Rating", "Total"))
+colnames(df2)
+```
+
+# Feature Selection in Unsupervised Learning
+## Using filter methods
+
+```{r}
+#loading lbraries
+library(caret)
+library(corrplot)
+colnames(df2)
+```
+
+```{r}
+# Calculating the correlation matrix
+correlationMatrix <- cor(df2)
+# Find attributes that are highly correlated
+highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.75)
+highlyCorrelated
+```
+
+```{r}
+# Removing Redundant Features 
+df3<-df2[-highlyCorrelated]
+```
+
+```{r}
+# Performing our graphical comparison
+par(mfrow = c(1, 2))
+corrplot(correlationMatrix, order = "hclust")
+corrplot(cor(df3), order = "hclust")
+```
+## Using Feature Ranking
+```{r}
+library(FSelector)
+colnames(df2)
+```
+
+```{r}
+Scores <- lm(Total ~ ., df2)
+Scores
+```
+
+```{r}
+# Instead of using the scores for the correlation coefficient, 
+# we can use an entropy - based approach as shown below;
+# ---
+# 
+Scores2 <- information.gain(Total ~ ., df2)
+
+# Choosing Variables by cutoffSubset <- cutoff.k(Scores2, 5)
+Subset3 <- cutoff.k(Scores2, 5)
+as.data.frame(Subset3)
+
+```
+
+## Using Embedded Methods
+```{r}
+library(wskm)
+df4 <- df[,apply(df2, 2, var, na.rm=TRUE) != 0]
+df4=prcomp(df4)
+model <- ewkm(df2[1:4], 3, lambda=2, maxiter=1000)
+```
+
+
+```{r}
+#checking weights
+round(model$weights*100,2)
+```
